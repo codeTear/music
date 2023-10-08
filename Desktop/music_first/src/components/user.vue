@@ -4,11 +4,11 @@
     <el-container>
       <!-- 头部 -->
       <el-header>
-        <el-menu class="el-menu-demo" mode="horizontal" @select="handleSelect">
+        <el-menu class="el-menu-demo" mode="horizontal">
           <el-menu-item index="1" @click="shouye">首页</el-menu-item>
           <el-menu-item index="1" @click="router1">歌手</el-menu-item>
           <el-menu-item index="1">歌单</el-menu-item>
-          <el-menu-item index="1" >我的音乐</el-menu-item>
+          <el-menu-item index="1">我的音乐</el-menu-item>
           <el-menu-item index="1">
             <!-- 搜索 -->
             <el-form ref="form" :model="form" label-width="0px">
@@ -17,8 +17,15 @@
                   v-model="form.content"
                   placeholder="歌手 歌单 歌曲"
                   size="medium"
-                  suffix-icon="el-icon-search"
-                ></el-input>
+                >
+                  <template v-slot:suffix>
+                    <i
+                      class="el-icon-search"
+                      @click="handleIconClick"
+                      style="cursor: pointer"
+                    ></i>
+                  </template>
+                </el-input>
               </el-form-item>
             </el-form>
           </el-menu-item>
@@ -32,7 +39,7 @@
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload"
-            :data="{username:username}"
+            :data="{ username: username }"
           >
             <img v-if="imageUrl" :src="imageUrl" class="avatar" />
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -44,24 +51,38 @@
       <!-- 中间部分 -->
       <el-main>
         <div class="fav">
-          <el-menu class="el-menu-demo" mode="horizontal" @select="handleSelect">
-          <el-menu-item index="1">我的喜欢</el-menu-item>
-          <el-menu-item index="1" @click="router1">歌手</el-menu-item>
-          <el-menu-item index="1">歌单</el-menu-item>
-          <el-menu-item index="1">我的音乐</el-menu-item>
-        </el-menu>
+          <el-menu
+            class="el-menu-demo"
+            mode="horizontal"
+          >
+            <el-menu-item index="1">我的喜欢</el-menu-item>
+            <el-menu-item index="1" @click="router1">歌手</el-menu-item>
+            <el-menu-item index="1">歌单</el-menu-item>
+            <el-menu-item index="1">我的音乐</el-menu-item>
+          </el-menu>
         </div>
 
         <el-table
           stripe
           ref="singleTable"
           :data="tableSongData"
-          style="width: 100%; float: left; white-space: nowrap ;overflow: hidden ;text-overflow: ellipsis ;"
+          style="
+            width: 100%;
+            float: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          "
         >
           <el-table-column type="index" width="50"> </el-table-column>
           <el-table-column property="songName" label="歌曲" width="0">
           </el-table-column>
-          <el-table-column property="singerName" label="歌手" width="0" align="center">
+          <el-table-column
+            property="singerName"
+            label="歌手"
+            width="0"
+            align="center"
+          >
           </el-table-column>
           <el-table-column
             property="albumTitle"
@@ -74,18 +95,42 @@
           </el-table-column>
         </el-table>
       </el-main>
-      <!-- 底部 -->
-      <el-footer> </el-footer>
+       <!-- 分页 -->
+       <template>
+  <div class="block" style="margin-left: 243px;margin-top: 20px;" >
+    <el-pagination
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="currentPage"
+      :page-sizes="[5, 10, 15, 20]"
+      :page-size="5"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="totalPages">
+    </el-pagination>
+  </div>
+</template>
+
+      
     </el-container>
   </div>
 </template>
   
   <script>
 export default {
-   name: "index",
+  name: "index",
   data() {
     // 轮播图
     return {
+
+      // 分页
+      totalPages:100,
+      
+      currentPage: 1,
+
+      pageSize:5,
+
+      userid:"",
+
       form: {
         search: "content",
       },
@@ -104,20 +149,42 @@ export default {
     };
   },
   mounted() {
-    this.username=window.sessionStorage.getItem("username")
-    let url = "http://159.65.4.58:8080/api/users/info?username=" + this.username;
-    this.$http.get(url).then((res)=>{
-      this.imageUrl=res.data.data.userImg
-    })
+    this.username = window.sessionStorage.getItem("username");
+    let url =
+      "http://159.65.4.58:8080/api/users/info?username=" + this.username;
+    this.$http.get(url).then((res) => {
+      this.imageUrl = res.data.data.userImg;
+      this.userid = res.data.data.id
+      this.selectAllPage()
+    });
+
+
+   
   },
   methods: {
-    handleChange(index) {
-      // eslint-disable-next-line
-      console.log(`[Demo 1] You have click cover ${index}`);
+
+    selectAllPage(){
+   // 分页获取喜爱歌单表
+   let Pageurl = "http://159.65.4.58:8080/api/songs/loveSongPage?page="+this.currentPage+"&size="+this.pageSize+"&userId="+this.userid+""
+    this.$http.get(Pageurl).then((res) => {
+      console.log(res.data);
+      this.totalPages = res.data.data.total;
+      let data = res.data.data.data;
+      this.tableSongData = data.map((song) => {
+        song.songName += " " + song.subtitle; // 将 subtitle 拼接到 songName 后面
+        let minutes = Math.floor(parseInt(song.timeInterval) / 60);
+        let seconds = parseInt(song.timeInterval) % 60;
+        song.timeInterval = `${minutes.toString().padStart(2, "0")}:${seconds
+          .toString()
+          .padStart(2, "0")}`;
+        return song;
+      });
+    })
     },
-    // 导航栏
-    handleSelect(key, keyPath) {
-      console.log(key, keyPath);
+    handleIconClick() {
+      // 处理后缀图标点击事件
+      console.log('后缀图标被点击了');
+      // TODO: 执行相关操作
     },
     // 跳转到歌手界面
     router1() {
@@ -140,7 +207,7 @@ export default {
       console.log(res);
       this.username = res.data.username;
       this.imageUrl = URL.createObjectURL(file.raw);
-      this.imageUrl = res.data.userImg
+      this.imageUrl = res.data.userImg;
     },
     beforeAvatarUpload(file) {
       const isJPG = file.type === "image/jpeg";
@@ -154,6 +221,17 @@ export default {
       }
       return isJPG && isLt2M;
     },
+    // 分页
+      handleSizeChange(val) {
+        重新设置分页的条数
+        this.pageSize = val
+        this.selectAllPage()
+      },
+      handleCurrentChange(val) {
+        // 重新设置分页的页码
+        this.currentPage = val
+        this.selectAllPage()
+      }
   },
 };
 </script>
@@ -269,11 +347,11 @@ body > .el-container {
 }
 .user_img {
   width: 110px;
-    height: 110px;
-    border-radius: 64px;
-    margin-left: 801px;
-    margin-top: 100px;
-    margin-bottom: 100px;
+  height: 110px;
+  border-radius: 64px;
+  margin-left: 801px;
+  margin-top: 100px;
+  margin-bottom: 100px;
   border-radius: 64px;
 }
 .username {
@@ -327,29 +405,29 @@ body > .el-container {
   background-color: #ccc;
 }
 .avatar-uploader-icon[data-v-37da89b8] {
-    font-size: 28px;
-    color: #8c939d;
-    width: 112px;
-    height: 112px;
-    line-height: 112px;
-    text-align: center;
+  font-size: 28px;
+  color: #8c939d;
+  width: 112px;
+  height: 112px;
+  line-height: 112px;
+  text-align: center;
 }
 .fav .el-menu-demo[data-v-7b4b534a] {
-    padding-left: 0px;
+  padding-left: 0px;
 }
 .fav .el-menu {
-    background-color:rgb(249, 249, 249);
+  background-color: rgb(249, 249, 249);
 }
 .el-table .el-table__cell .cell {
-    box-sizing: border-box;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: normal;
-    word-break: break-all;
-    line-height: 23px;
-    padding-left: 10px;
-    padding-right: 10px;
-    white-space: nowrap; /* 不换行 */
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-all;
+  line-height: 23px;
+  padding-left: 10px;
+  padding-right: 10px;
+  white-space: nowrap; /* 不换行 */
   overflow: hidden; /* 溢出隐藏 */
   text-overflow: ellipsis; /* 显示省略号 */
 }

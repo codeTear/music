@@ -9,6 +9,8 @@ import songlist from '../components/songlist.vue'
 import user from '../components/user.vue'
 import userdetail from '../components/userdetail.vue'
 import play from '../components/play.vue'
+import search from '../components/search.vue'
+import admin from '../components/admin.vue'
 Vue.use(VueRouter)
 
 const routes = [
@@ -23,7 +25,9 @@ const routes = [
   {path: '/songlist', component:songlist, name:'songlist'},
   {path: '/user', component:user, name:'user'},
   {path: '/userdetail', component:userdetail, name:'userdetail'},
-   {path: '/play', component:play, name:'play'}
+   {path: '/play', component:play, name:'play'},
+   {path: '/search', component:search, name:'search'},
+    {path: '/admin', component:admin, name:'admin'}
 ]
 
 const router = new VueRouter({

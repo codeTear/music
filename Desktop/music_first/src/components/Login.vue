@@ -67,7 +67,7 @@ export default {
         password: "",
         cheCode: "",
       },
-      url: "http://159.65.4.58:8080/api/users/generate",
+      url: "http://staryh.me:8080/api/users/generate",
 
       //   验证规则
       loginRules: {
@@ -91,16 +91,12 @@ export default {
         if (!validate) return;
         try {
           let response = await this.$http.post(
-            "http://159.65.4.58:8080/api/users/login",
+            "http://staryh.me:8080/api/users/login",
             this.loginForm,
             {
               headers: {
                 "Content-Type": "application/json",
               },
-              // xhrFields: {
-              //   withCredentials: true, //允许带上凭据
-              // },
-              credentials: "include",
             }
           );
         //   成功或者失败的处理方法
@@ -125,7 +121,7 @@ export default {
     change() {
       // console.log(document.getElementsByClassName("che"));
       this.url =
-        "http://159.65.4.58:8080/api/users/generate?" + new Date().getMilliseconds();
+        "http://staryh.me:8080/api/users/generate?" + new Date().getMilliseconds();
     },
     skip(){
         this.$router.push("/register")

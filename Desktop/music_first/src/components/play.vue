@@ -68,6 +68,13 @@
               style="font-size: 31px; color: #333"
             ></i>
           </div>
+          <div class="love" @click="getSong">
+            <i
+              id="loveFont"
+              class="iconfont icon-xiai"
+              style="font-size: 31px; color: #333"
+            ></i>
+          </div>
           <div class="song">
             <span id="moren">她说 林俊杰</span>
             {{ tableSongData.songname }} {{ tableSongData.singerName }}
@@ -140,6 +147,8 @@ export default {
   data() {
     // 轮播图
     return {
+      loveid:"",
+      userid: "",
       // 歌单列表的数据绑定对象
       lyric:"",
       songname: "",
@@ -263,6 +272,7 @@ export default {
     handleEdit(index, row) {
       console.log(row);
       // 传递id的值
+      this.loveid=row.id+1
       this.currentId = row.id;
       let moren = document.querySelector("#moren");
       moren.style.display = "none";
@@ -282,6 +292,7 @@ export default {
       this.$http.get(url).then((res) => {
         this.musicUrl = res.data.data.purl;
         this.$nextTick(() => {
+          this.loveid=row.id + 1
           this.$refs.plyr.player.play(); // 播放音频
           this.drawer = false;
         });
@@ -290,9 +301,10 @@ export default {
     },
     // 下一首
     next() {
+      this.loveid=this.currentId+1
       let nexturl =
         "http://159.65.4.58:8080/api/songs/songUrl/down/" + this.currentId;
-      this.$http.get(nexturl).then((res) => {
+        this.$http.get(nexturl).then((res) => {
         this.musicUrl = res.data.data.purl;
         this.imagePath=res.data.data.singerPhoto
         let img = document.querySelector(".singerimg");
@@ -313,6 +325,7 @@ export default {
     },
     //上一首
     pre() {
+      this.loveid = this.currentId 
       let preurl = "http://159.65.4.58:8080/api/songs/songUrl/up/" + this.currentId;
       this.$http.get(preurl).then((res) => {
         this.musicUrl = res.data.data.purl;
@@ -333,6 +346,49 @@ export default {
         });
       });
     },
+       // 获取当前播放的相关信息
+      getSong() {
+      if(window.sessionStorage.getItem("username") == null){
+        this.$message({
+          message: "请先登录",
+          type: "warning",
+        });
+        this.$router.push("/login");
+      }
+      // 查询用户id
+      let username = window.sessionStorage.getItem("username");
+      let userurl = "http://159.65.4.58:8080/api/users/info?username=" + username;
+      this.$http.get(userurl).then((res) => {
+        this.userid = res.data.data.id;
+        console.log(this.userid);
+      });
+      // 添加信息到喜欢表单
+      let url = "http://159.65.4.58:8080/api/songs/songUrl/up/" + this.loveid;
+      this.$http.get(url).then((res) => {
+        console.log(res.data.data);
+        
+        this.$http.post("http://159.65.4.58:8080/api/songs/addSongToList",{
+          userId: this.userid,
+          songId: res.data.data.id,
+          songName: res.data.data.songName,
+          singerName: res.data.data.singerName,
+          purl: res.data.data.purl,
+          timeInterval: res.data.data.timeInterval,
+          subtitle: res.data.data.subtitle,
+          albumTitle: res.data.data.albumTitle,
+        }).then((res)=>{
+          console.log(res.data);
+          if(res.data.code!=200){
+            this.$message({
+              message: "已经添加过了",
+              type: "warning",
+            });
+          }else{
+            this.$message.success("添加成功");
+          }
+        })
+      });
+    }
   },
 };
 </script>
@@ -349,6 +405,10 @@ export default {
   width: 100%;
   min-width: 1200px;
   padding: 0;
+}
+
+.el-footer{
+  box-shadow: none !important;
 }
 
 .el-aside {
@@ -483,6 +543,15 @@ body > .el-container {
   background: none;
 }
 
+
+/deep/ .plyr__controls {
+    position: relative;
+    align-items: center;
+    display: flex;
+    justify-content: flex-end;
+    text-align: center;
+}
+
 /deep/ .plyr .plyr__controls {
   background-color: bga(249, 249, 249);
   background: var(--plyr-audio-controls-background, bga(249, 249, 249));
@@ -499,18 +568,17 @@ body > .el-container {
   margin-top: -36px;
 }
 /deep/ .plyr__controls .plyr__controls__item:first-child {
-  position: absolute;
-  left: 846px;
-  top: 24px;
-  margin-left: 0;
-  margin-right: auto;
-  color: #333;
+    position: absolute;
+    left: 795px;
+    top: 24px;
+    margin-left: 0;
+    margin-right: auto;
+    color: #333;
 }
-
 .next {
   float: left;
   position: absolute;
-  left: 915px;
+  left: 875px;
   top: -35px;
 }
 .next:hover {
@@ -519,10 +587,13 @@ body > .el-container {
 .pre:hover {
   background-color: rgb(0, 179, 255);
 }
+.love i.icon-xiai:hover {
+  color: red !important;
+}
 .pre {
   position: absolute;
   float: left;
-  left: 770px;
+  left: 720px;
   top: -36px;
 }
 .icon {
@@ -535,10 +606,16 @@ body > .el-container {
 .list {
   position: absolute;
   float: left;
-  left: 1254px;
+  left: 1274px;
   top: -36px;
 }
 
+.love{
+  position: absolute;
+  float: left;
+  left: 1204px;
+  top: -36px;
+}
 .song {
   position: absolute;
   font-weight: bold;
@@ -572,37 +649,39 @@ body > .el-container {
   padding: 0 calc(var(--plyr-control-spacing, 10px) / 2);
 }
 /deep/ .plyr__menu {
-  display: flex;
-  position: relative;
-  top: 14px;
-  left: -450px;
+     display: flex;
+    position: absolute;
+    top: 24px;
+    right: 524px;
 }
 
-/deep/ .plyr__controls .plyr__controls__item.plyr__time {
-    left: 155px;
-    position: relative;
-    margin-top: -29px;
+
+/deep/ [data-v-47323bf2] [data-v-47323bf2] .plyr__controls .plyr__controls__item.plyr__time {
+  font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    position: absolute;
     padding: 0 calc(10px / 2);
+    top: 51px;
     padding: 0 calc(var(--plyr-control-spacing, 10px) / 2);
 }
-
 /deep/ .plyr__volume {
   align-items: center;
-  display: flex;
-  max-width: 110px;
-  min-width: 80px;
-  position: relative;
-  width: 20%;
-  top: 14px;
-  left: -450px;
+    /* display: flex; */
+    max-width: 110px;
+    min-width: 80px;
+    position: absolute;
+    width: 20%;
+    top: 24px;
+    right: 570px;
 }
 /deep/ .plyr__controls .plyr__controls__item.plyr__progress__container {
-  margin-right: -162px;
+  margin-right: -10px;
   margin-left: -44px;
   width: 100%;
   padding-left: calc(10px / 4);
   padding-left: calc(var(--plyr-control-spacing, 10px) / 4);
-  margin-top: -36px;
+  margin-top: -15px;
 }
 body,
 ul,

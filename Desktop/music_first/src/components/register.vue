@@ -106,7 +106,7 @@ export default {
         if (!validate) return;
         try {
           let response = await this.$http.post(
-            "http://159.65.4.58:8080/api/users/register",
+            "http://staryh.me:8080/api/users/register",
             this.registerForm,
             {
               headers: {
@@ -134,7 +134,7 @@ export default {
     // 邮箱码的获取
     async sendEmail() {
       const email = this.registerForm.email;
-      let res = await this.$http.post("http://159.65.4.58:8080/api/mail", { email });
+      let res = await this.$http.post("http://staryh.me:8080/api/mail", { email });
       if ((res.data = "success")) {
         this.$message.success("发送成功");
       } else {

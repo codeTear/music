@@ -4,7 +4,7 @@
     <el-container>
       <!-- 头部 -->
       <el-header>
-        <el-menu class="el-menu-demo" mode="horizontal" @select="handleSelect">
+        <el-menu class="el-menu-demo" mode="horizontal">
           <el-menu-item index="1"
             ><i
               class="iconfont icon-tubiaozhizuomobanyihuifu-"
@@ -12,7 +12,16 @@
             ></i
           ></el-menu-item>
 
-          <el-menu-item index="1"  style="font-size: 30px; color: #333;font-style: italic;font-weight: bold;">star音乐</el-menu-item>
+          <el-menu-item
+            index="1"
+            style="
+              font-size: 30px;
+              color: #333;
+              font-style: italic;
+              font-weight: bold;
+            "
+            >star音乐</el-menu-item
+          >
           <el-menu-item index="1">首页</el-menu-item>
           <el-menu-item index="1" @click="router1">歌手</el-menu-item>
           <el-menu-item index="1">歌单</el-menu-item>
@@ -25,8 +34,15 @@
                   v-model="form.content"
                   placeholder="歌手 歌单 歌曲"
                   size="medium"
-                  suffix-icon="el-icon-search"
-                ></el-input>
+                >
+                  <template v-slot:suffix>
+                    <i
+                      class="el-icon-search"
+                      @click="handleIconClick"
+                      style="cursor: pointer"
+                    ></i>
+                  </template>
+                </el-input>
               </el-form-item>
             </el-form>
           </el-menu-item>
@@ -42,6 +58,12 @@
                 ></el-breadcrumb-item
               >
             </el-breadcrumb>
+          </el-menu-item>
+          <!-- 管理员显示 -->
+          <el-menu-item>
+            <div class="admin">
+             <span style="font-size: 14px;color: red;" id="judgeAdmin"  @click="admin">管理员</span>
+            </div>
           </el-menu-item>
           <!-- 头像 -->
           <el-menu-item>
@@ -131,6 +153,14 @@
               style="font-size: 31px; color: #333"
             ></i>
           </div>
+
+          <div class="love" @click="getSong">
+            <i
+              id="loveFont"
+              class="iconfont icon-xiai"
+              style="font-size: 31px; color: #333"
+            ></i>
+          </div>
           <div class="song">
             <span id="moren">她说 林俊杰</span>
             {{ tableSongData.songname }} {{ tableSongData.singerName }}
@@ -151,6 +181,7 @@
         <el-table-column type="index" width="50"> </el-table-column>
         <el-table-column property="songName" label="歌曲" width="0">
         </el-table-column>
+        
         <el-table-column
           property="singerName"
           label="歌手"
@@ -180,7 +211,7 @@
 </template>
 
 <script>
-import router from '@/router';
+import router from "@/router";
 
 export default {
   name: "index",
@@ -188,6 +219,8 @@ export default {
   data() {
     // 轮播图
     return {
+      // loveid显示
+      loveid: "",
       // 歌单列表的数据绑定对象
       id: [],
       imgUrl: [],
@@ -246,6 +279,7 @@ export default {
         search: "content",
       },
       drawer: false,
+      userid:"",
     };
   },
   // 定义钩子函数
@@ -276,6 +310,14 @@ export default {
       console.log(data);
     });
 
+    // 判断是否为管理员
+    if (window.sessionStorage.getItem("username") != "admin") {
+      let username = window.sessionStorage.getItem("username");
+      let admin = document.getElementById("judgeAdmin");
+      admin.style.display = "none";
+      
+    }
+    // 判断是否登录
     if (window.sessionStorage.getItem("username") != null) {
       let username = window.sessionStorage.getItem("username");
       let login = document.getElementById("judgelogin");
@@ -338,9 +380,14 @@ export default {
       // eslint-disable-next-line
       console.log(`[Demo 1] You have click cover ${index}`);
     },
-    // 导航栏
-    handleSelect(key, keyPath) {
-      console.log(key, keyPath);
+    // 搜索表单验证
+    handleIconClick() {
+      this.$router.push({
+        name: "search",
+        params: {
+          content: this.form.content,
+        },
+      });
     },
     // 跳转到歌手界面
     router1() {
@@ -349,6 +396,9 @@ export default {
     // 我的音乐
     mymusic() {
       this.$router.push("/user");
+    },
+    admin(){
+      this.$router.push("/admin");
     },
     // 每个歌单所对应的详情页
     goToSong(id, title, playCount, favCount, imgUrl, introduction) {
@@ -368,6 +418,7 @@ export default {
     },
     handleEdit(index, row) {
       // 传递id的值
+      this.loveid = row.id+1;
       this.currentId = row.id;
       let moren = document.querySelector("#moren");
       moren.style.display = "none";
@@ -379,6 +430,7 @@ export default {
       this.$http.get(url).then((res) => {
         this.musicUrl = res.data.data.purl;
         this.$nextTick(() => {
+          this.loveid=this.loveid+1
           this.$refs.plyr.player.play(); // 播放音频
           this.drawer = false;
         });
@@ -387,6 +439,7 @@ export default {
     },
     // 下一首
     next() {
+      this.loveid = this.currentId + 1
       let nexturl =
         "http://159.65.4.58:8080/api/songs/url/next/" + this.currentId;
       this.$http.get(nexturl).then((res) => {
@@ -403,6 +456,7 @@ export default {
     },
     //上一首
     pre() {
+      this.loveid = this.currentId 
       let preurl = "http://159.65.4.58:8080/api/songs/url/up/" + this.currentId;
       this.$http.get(preurl).then((res) => {
         this.musicUrl = res.data.data.purl;
@@ -416,6 +470,50 @@ export default {
         });
       });
     },
+    
+    // 获取当前播放的相关信息
+    getSong() {
+      if(window.sessionStorage.getItem("username") == null){
+        this.$message({
+          message: "请先登录",
+          type: "warning",
+        });
+        this.$router.push("/login");
+      }
+      // 查询用户id
+      let username = window.sessionStorage.getItem("username");
+      let userurl = "http://159.65.4.58:8080/api/users/info?username=" + username;
+      this.$http.get(userurl).then((res) => {
+        this.userid = res.data.data.id;
+        console.log(this.userid);
+      });
+      // 添加信息到喜欢表单
+      let url = "http://159.65.4.58:8080/api/songs/url/up/" + this.loveid;
+      this.$http.get(url).then((res) => {
+        console.log(res.data.data);
+        
+        this.$http.post("http://159.65.4.58:8080/api/songs/addSongToList",{
+          userId: this.userid,
+          songId: res.data.data.id,
+          songName: res.data.data.songName,
+          singerName: res.data.data.singerName,
+          purl: res.data.data.purl,
+          timeInterval: res.data.data.timeInterval,
+          subtitle: res.data.data.subtitle,
+          albumTitle: res.data.data.albumTitle,
+        }).then((res)=>{
+          console.log(res.data);
+          if(res.data.code!=200){
+            this.$message({
+              message: "已经添加过了",
+              type: "warning",
+            });
+          }else{
+            this.$message.success("添加成功");
+          }
+        })
+      });
+    }
   },
 };
 </script>
@@ -427,6 +525,7 @@ export default {
 
 .el-header,
 .el-footer {
+  position: relative;
   color: #3333;
   text-align: center;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
@@ -434,7 +533,9 @@ export default {
   min-width: 1200px;
   padding: 0;
 }
-
+.el-footer{
+  box-shadow: none !important;
+}
 .el-aside {
   color: #333;
   text-align: center;
@@ -482,7 +583,7 @@ body > .el-container {
 .user {
   position: absolute;
   cursor: default;
-  right: -465px;
+  right: -225px;
   top: -3px;
 }
 
@@ -562,6 +663,15 @@ body > .el-container {
   background: none;
 }
 
+
+/deep/ .plyr__controls {
+    position: relative;
+    align-items: center;
+    display: flex;
+    justify-content: flex-end;
+    text-align: center;
+}
+
 /deep/ .plyr .plyr__controls {
   background-color: bga(249, 249, 249);
   background: var(--plyr-audio-controls-background, bga(249, 249, 249));
@@ -578,17 +688,17 @@ body > .el-container {
   margin-top: -36px;
 }
 /deep/ .plyr__controls .plyr__controls__item:first-child {
-  position: relative;
-  left: 840px;
-  top: 14px;
-  margin-left: 0;
-  margin-right: auto;
-  color: #333;
+    position: absolute;
+    left: 795px;
+    top: 24px;
+    margin-left: 0;
+    margin-right: auto;
+    color: #333;
 }
 .next {
   float: left;
   position: absolute;
-  left: 915px;
+  left: 875px;
   top: -35px;
 }
 .next:hover {
@@ -597,10 +707,13 @@ body > .el-container {
 .pre:hover {
   background-color: rgb(0, 179, 255);
 }
+.love i.icon-xiai:hover {
+  color: red !important;
+}
 .pre {
   position: absolute;
   float: left;
-  left: 770px;
+  left: 720px;
   top: -36px;
 }
 .icon {
@@ -613,10 +726,16 @@ body > .el-container {
 .list {
   position: absolute;
   float: left;
-  left: 1234px;
+  left: 1274px;
   top: -36px;
 }
 
+.love{
+  position: absolute;
+  float: left;
+  left: 1204px;
+  top: -36px;
+}
 .song {
   position: absolute;
   font-weight: bold;
@@ -650,38 +769,38 @@ body > .el-container {
   padding: 0 calc(var(--plyr-control-spacing, 10px) / 2);
 }
 /deep/ .plyr__menu {
-  display: flex;
-  position: relative;
-  top: 14px;
-  left: -450px;
+     display: flex;
+    position: absolute;
+    top: 24px;
+    right: 524px;
 }
 
-/deep/ .plyr__controls .plyr__controls__item.plyr__time {
-    left: 155px;
-    position: relative;
-    margin-top: -29px;
+
+/deep/ [data-v-47323bf2] [data-v-47323bf2] .plyr__controls .plyr__controls__item.plyr__time {
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    position: absolute;
     padding: 0 calc(10px / 2);
+    top: 51px;
     padding: 0 calc(var(--plyr-control-spacing, 10px) / 2);
 }
-
 /deep/ .plyr__volume {
   align-items: center;
-  display: flex;
-  max-width: 110px;
-  min-width: 80px;
-  position: relative;
-  width: 20%;
-  top: 14px;
-  left: -450px;
+    /* display: flex; */
+    max-width: 110px;
+    min-width: 80px;
+    position: absolute;
+    width: 20%;
+    top: 24px;
+    right: 570px;
 }
-/deep/
-  .plyr__controls
-  .plyr__controls__item.plyr__progress__container {
-  margin-right: -162px;
+/deep/ .plyr__controls .plyr__controls__item.plyr__progress__container {
+  margin-right: -10px;
   margin-left: -44px;
   width: 100%;
   padding-left: calc(10px / 4);
   padding-left: calc(var(--plyr-control-spacing, 10px) / 4);
-  margin-top: -36px;
+  margin-top: -15px;
 }
 </style>
