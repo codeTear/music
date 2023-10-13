@@ -1,0 +1,56 @@
+spring:
+  profiles:
+    active: test
+
+---
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://localhost:3306/music?serverTimezone=UTC
+    username: root
+    password: 1459hyh.
+  config:
+    activate:
+      on-profile: test
+---
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://127.0.0.1/music?serverTimezone=UTC
+    username: root
+    password: 1459Hyh.
+  config:
+    activate:
+      on-profile: dev
+
+---
+spring:
+  mail:
+    host: smtp.qq.com #邮箱SMTP的地址
+    port: 587 #端口号
+    username: 2766291459@qq.com #发送邮箱的邮箱地址
+    password: luoarpfhdmksdhdc # 生成的邮箱授权码
+    properties:
+      mail:
+        smtp:
+          auth: true #SMTP认证
+          ssl: true #开启ssh加密
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
+---
+# 模板配置
+spring:
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: false
+
+
+
+

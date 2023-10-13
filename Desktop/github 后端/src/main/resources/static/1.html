@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<img src="/users/generate" alt="验证码">
+
+<form enctype="multipart/form-data">
+    <input type="file" name="file" id="fileInput">
+    <button type="button" onclick="uploadAvatar()">上传头像</button>
+</form>
+<script>
+    function uploadAvatar() {
+        var fileInput = document.getElementById('fileInput');
+        var file = fileInput.files[0];
+        if (file) {
+            var formData = new FormData();
+            formData.append('file', file);
+            // 发起HTTP请求，将文件上传到后端
+            fetch('http://localhost:8080/api/users/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.text())
+                .then(result => {
+                    console.log(result);
+                    // 根据实际需求处理上传结果
+                })
+                .catch(error => {
+                    console.error(error);
+                    // 处理上传错误
+                });
+        }
+    }
+</script>
+</body>
+</html>
