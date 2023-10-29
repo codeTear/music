@@ -12,7 +12,29 @@ jdk 17
 
 网址 http://staryh.me
 
+主页
+![image](https://github.com/codeTear/music/assets/127510553/ec993a67-e936-44f0-b549-5da03c69594c)
+![image](https://github.com/codeTear/music/assets/127510553/4e23d720-1397-4495-8672-45e836bd8f13)
 
+登录页
+![image](https://github.com/codeTear/music/assets/127510553/1a503a55-77e3-4708-9631-743830a40db1)
+
+歌单
+![image](https://github.com/codeTear/music/assets/127510553/6ad0ad4e-441e-4cd1-9c39-53f505c4cc1f)
+
+歌手
+![image](https://github.com/codeTear/music/assets/127510553/32c5331a-5efa-40fe-80bc-87d55b5936e9)
+
+
+后台管理
+![image](https://github.com/codeTear/music/assets/127510553/4f2cddcd-9783-4ff8-b997-d9acaf8adfde)
+
+我的主页
+![image](https://github.com/codeTear/music/assets/127510553/9f763825-7866-4618-bb47-5483bd3d613b)
+![image](https://github.com/codeTear/music/assets/127510553/31663e38-1835-48da-a9bd-08d62a336f05)
+
+播放
+![image](https://github.com/codeTear/music/assets/127510553/5956e9d2-642b-4587-bafa-42d22e8504ea)
 
 #### 特技
 
